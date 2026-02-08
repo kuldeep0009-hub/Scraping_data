@@ -28,7 +28,7 @@ Based on Top 20 Domestic Routes from India (2024-2025):
 20. Srinagar (SXR) → Delhi (DEL)
 """
 from datetime import date
-Path("data").mkdir(exist_ok=True)
+
 
 import requests
 import json
@@ -41,6 +41,7 @@ import logging
 from typing import List, Dict, Tuple, Optional
 import argparse
 from pathlib import Path
+Path("data").mkdir(exist_ok=True)
 
 
 
