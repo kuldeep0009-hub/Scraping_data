@@ -45,7 +45,10 @@ from pathlib import Path
 
 
 # API Configuration
-API_URL = "https://www.nomadiq.co.in/api/search"
+API_URL = os.getenv("FLIGHT_API_URL")
+if not API_URL:
+    raise ValueError("FLIGHT_API_URL not set")
+
 API_HEADERS = {
     "Accept": "application/json, text/plain, */*",
     "Content-Type": "application/json"
