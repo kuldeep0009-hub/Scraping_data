@@ -27,6 +27,8 @@ Based on Top 20 Domestic Routes from India (2024-2025):
 19. Patna (PAT) → Delhi (DEL)
 20. Srinagar (SXR) → Delhi (DEL)
 """
+from datetime import date
+Path("data").mkdir(exist_ok=True)
 
 import requests
 import json
@@ -52,7 +54,7 @@ API_HEADERS = {
 
 REQUEST_DELAY = 5
 
-ROLLING_WINDOW_DAYS = 30  
+ROLLING_WINDOW_DAYS = 1
 
 
 DOMESTIC_ROUTES = [
@@ -478,7 +480,10 @@ def scrape_all_routes(departure_date: datetime, output_file: str = 'domestic_fli
     Returns:
         Tuple of (successful_routes, failed_routes)
     """
-    aggregated_file = output_file.replace('.csv', '_aggregated.csv')
+    today_str = datetime.now().strftime("%Y_%m_%d")
+    aggregated_file = f"data/domestic_flights_aggregated_{today_str}.csv"
+
+
     successful, failed, _ = scrape_and_save_all_routes(departure_date, output_file, aggregated_file, delay)
     return successful, failed
 
@@ -503,8 +508,11 @@ def scrape_rolling_window(start_date: datetime = None,
         start_date = datetime.now().date()
     elif isinstance(start_date, datetime):
         start_date = start_date.date()
-    
-    aggregated_file = output_file.replace('.csv', '_aggregated.csv')
+        
+    today_str = datetime.now().strftime("%Y_%m_%d")
+    aggregated_file = f"data/domestic_flights_aggregated_{today_str}.csv"
+
+
     
     # Calculate end date
     end_date = start_date + timedelta(days=days_ahead - 1)
@@ -627,9 +635,19 @@ Examples:
         logger.info(f"No start date specified. Using today: {start_date.strftime('%Y-%m-%d')}")
     
 
+    from datetime import date
+    from pathlib import Path
+    
+    # ensure data folder exists
+    Path("data").mkdir(exist_ok=True)
+    
+    today_str = date.today().strftime("%Y_%m_%d")
+    
+    output_file = f"data/domestic_flights_{today_str}.csv"
+    
     logger.info(f"Starting {args.days}-day scrape from {start_date.strftime('%Y-%m-%d')}")
-    scrape_rolling_window(start_date, args.days, args.output, args.delay)
-
+    scrape_rolling_window(start_date, args.days, output_file, args.delay)
+    
 
 if __name__ == "__main__":
     main()
