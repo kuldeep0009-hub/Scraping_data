@@ -1,19 +1,60 @@
 name: Daily Domestic Flight Scraper
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * *"   # 8:00 AM IST
+
+permissions:
+  contents: write
+
 concurrency:
   group: daily-scrape
   cancel-in-progress: true
-
-on:
-  schedule:
-    - cron: "30 2 * * *"
-  workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pandas numpy
+
+      - name: Debug – list files
+        run: |
+          echo "=== ROOT FILES ==="
+          ls -la
+          echo "=== DATA FOLDER ==="
+          ls -la data || echo "NO DATA FOLDER YET"
+
+      - name: Run scraper
+        env:
+          FLIGHT_API_URL: ${{ secrets.FLIGHT_API_URL }}
+        run: |
+          echo " STARTING SCRAPER "
+          python domestic_flight_scraper.py --days 1
+          echo " SCRAPER FINISHED "
+          ls -la data || echo "DATA FOLDER STILL MISSING"
+
+      - name: Commit and push data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add data || echo "NOTHING TO ADD"
+          git commit -m "Daily scrape $(date +'%Y-%m-%d')" || echo "NO CHANGES TO COMMIT"
+
+          git pull --rebase origin main
+          git push origin main
